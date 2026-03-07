@@ -18,11 +18,27 @@
   let search = $state("");
   let filteredChannels = $state<any[]>([]);
 
+  let epg = $state<Record<string, ChannelEpg>>({});
+  let epgLoading = $state(true);
+
   function getChannelEpg(channel: any): ChannelEpg | null {
     const tvgId = channel.attributes?.["tvg-id"];
-    if (!tvgId || !data.epg) return null;
-    // @ts-ignore
-    return data.epg[tvgId] ?? null;
+    if (!tvgId) return null;
+    return epg[tvgId] ?? null;
+  }
+
+  async function loadEpg() {
+    epgLoading = true;
+    try {
+      const res = await fetch("/api/epg");
+      if (res.ok) {
+        epg = await res.json();
+      }
+    } catch (err) {
+      console.error("Failed to load EPG:", err);
+    } finally {
+      epgLoading = false;
+    }
   }
 
   function destroyPlayer() {
@@ -125,6 +141,8 @@
       filteredChannels[0];
 
     if (initial) selectChannel(initial);
+
+    loadEpg();
   });
 
   onDestroy(() => destroyPlayer());
@@ -176,7 +194,7 @@
       getKey={(item: any) => item.location}
     >
       {#snippet children(item: any)}
-        {@const epg = getChannelEpg(item)}
+        {@const epgData = getChannelEpg(item)}
         <button
           onclick={() => selectChannel(item)}
           class="w-full flex items-center gap-3 px-4 py-3 border-b border-neutral-800 transition
@@ -202,23 +220,27 @@
           <div class="flex-1 text-left min-w-0">
             <div class="font-medium text-sm truncate">{item.name}</div>
 
-            {#if epg?.current}
+            {#if epgData?.current}
               <div class="mt-1">
                 <div class="text-xs text-neutral-300 truncate">
-                  {epg.current.title}
+                  {epgData.current.title}
                   <span class="text-neutral-500"
-                    >· until {epg.current.stopLabel}</span
+                    >· until {epgData.current.stopLabel}</span
                   >
                 </div>
-                {#if epg.next}
+                {#if epgData.next}
                   <div class="text-xs text-neutral-500 truncate">
-                    Next: {epg.next.title}
+                    Next: {epgData.next.title}
                   </div>
                 {/if}
               </div>
-            {:else if epg?.next}
+            {:else if epgData?.next}
               <div class="text-xs text-neutral-500 truncate mt-0.5">
-                Up next: {epg.next.title}
+                Up next: {epgData.next.title}
+              </div>
+            {:else if epgLoading}
+              <div class="text-xs text-neutral-600 truncate mt-0.5">
+                Loading guide...
               </div>
             {/if}
           </div>
