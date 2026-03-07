@@ -1,0 +1,14 @@
+services:
+  iptv:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: iptv-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      M3U_URL: "https://example.com/playlist.m3u"
+      EPG_URL: "https://example.com/epg.xml"
+      # Optional: override default port
+      # PORT: 3000

@@ -1,4 +1,5 @@
-import { M3U_URL, EPG_URL } from "$env/static/private";
+import { env } from "$env/dynamic/private";
+const { M3U_URL, EPG_URL } = env;
 import { M3uParser } from "m3u-parser-generator";
 import { parseXmltv } from "@iptv/xmltv";
 
