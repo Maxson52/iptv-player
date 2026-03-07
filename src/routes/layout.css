@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+}
+
+body {
+  @apply bg-neutral-900;
+}
