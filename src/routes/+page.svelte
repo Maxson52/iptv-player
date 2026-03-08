@@ -2,8 +2,6 @@
   import { onMount, onDestroy } from "svelte";
   import { VList } from "virtua/svelte";
   import { toast } from "$lib/services/toast.svelte";
-  import { page } from "$app/state";
-  import { goto } from "$app/navigation";
   import type { PageProps } from "./$types";
   import type { ChannelEpg } from "./+page.server";
 
@@ -108,12 +106,7 @@
     selectedStream = channel.location;
     selectedName = channel.name;
 
-    page.url.searchParams.set("channel", channel.location);
-    goto(page.url.toString(), {
-      replaceState: true,
-      noScroll: true,
-      keepFocus: true,
-    });
+    localStorage.setItem("lastChannel", channel.location);
 
     loadStream();
   }
@@ -132,12 +125,10 @@
   onMount(() => {
     filteredChannels = data.playlist.medias;
 
-    const channelFromUrl = new URLSearchParams(window.location.search).get(
-      "channel",
-    );
+    const lastChannel = localStorage.getItem("lastChannel");
     const initial =
-      (channelFromUrl &&
-        data.playlist.medias.find((c: any) => c.location === channelFromUrl)) ||
+      (lastChannel &&
+        data.playlist.medias.find((c: any) => c.location === lastChannel)) ||
       filteredChannels[0];
 
     if (initial) selectChannel(initial);
